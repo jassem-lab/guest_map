@@ -4,7 +4,8 @@ import './index.css';
 import App from './App';
 import 'leaflet/dist/leaflet.css'
 import reportWebVitals from './reportWebVitals';
-import Map from './component/index.js'
+// import Map from './component/index.js'
+
 ReactDOM.render(
   <React.StrictMode>
     <App />

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -14,6 +14,13 @@ var myIcon = L.icon({
   */
 })
 
+
+function ChangeMapView({ coords }) {
+  const map = useMap();
+  map.setView(coords, map.getZoom());
+
+  return null;
+}
 
 class App extends Component {
 
@@ -55,6 +62,8 @@ class App extends Component {
             A pretty CSS3 popup. <br /> Easily customizable.
             </Popup>
         </Marker>
+        <ChangeMapView coords={position} />
+
       </MapContainer>
     )
   }
