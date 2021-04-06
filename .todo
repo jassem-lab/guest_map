@@ -12,7 +12,7 @@
     ✔ Install react-leaflet : https://github.com/PaulLeCam/react-leaflet @done(21-04-06 03:45)
     ✔ Get a map on the page ! @done(21-04-06 03:45)
     ☐ Get the users location 
-       ☐ With the browser
+       ✔ With the browser @done(21-04-06 05:12)
        ☐ With their IP using an API 
     ☐ Show a pin at the users location 
     ☐ Show a form to submit a message
