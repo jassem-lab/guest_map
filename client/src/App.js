@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from './component/icon'
-
+import Card from './component/card'
 
 
 function ChangeMapView({ coords }) {
@@ -13,14 +13,38 @@ function ChangeMapView({ coords }) {
 }
 
 class App extends Component {
+  constructor(props) {
+    
+    super(props);
+    this.state = {
+      userMessage: {
+        name: '',
+        message: '',
+      },
+      location: {
+        lat: '',
+        lng: ''
+      },
+      haveUsersLocation: false,
+      zoom: 2,
+    }
+  }
+  handleCallBack = (childData) => {
+    const fname = childData.name
+    const fmessage = childData.message
+    this.setState({
+      userMessage: {
+        name: fname,
+        message: fmessage
+      }
+      
+    })
 
-  state = {
-    location: {
-      lat: 51.505,
-      lng: -0.09,
-    },
-    haveUsersLocation: false,
-    zoom: 2,
+
+    console.log(fname)
+    console.log(fmessage)
+
+    console.log(this.state.userMessage)
   }
   componentDidMount() {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -52,30 +76,33 @@ class App extends Component {
     });
   }
 
-
   render() {
     const position = [this.state.location.lat, this.state.location.lng]
     const zoom = this.state.zoom
     return (
-      <MapContainer center={position} zoom={zoom} style={{ height: '350px' }}>
-        <TileLayer
-          attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-          url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-        />
-        {this.state.haveUsersLocation ?
-          <Marker
-            className="icon"
-            position={position}
-            icon={Icon}
-          >
-            <Popup>
-              A pretty CSS3 popup. <br /> Easily customizable.
+      <>
+        <MapContainer center={position} zoom={zoom} style={{ height: '350px' }}>
+          <TileLayer
+            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
+            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+          />
+          {this.state.haveUsersLocation ?
+            <Marker
+              className="icon"
+              position={position}
+              icon={Icon}
+            >
+              <Popup>
+                A pretty CSS3 popup. <br /> Easily customizable.
             </Popup>
-          </Marker> : ''
-        }
-        <ChangeMapView coords={position} />
+            </Marker> : ''
+          }
+          <ChangeMapView coords={position} />
 
-      </MapContainer>
+        </MapContainer>
+        <Card props={this.state.haveUsersLocation} parentCallBack={(e)=>this.handleCallBack} />
+         
+      </>
     )
   }
 }
