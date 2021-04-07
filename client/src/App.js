@@ -19,7 +19,8 @@ class App extends Component {
       lat: 51.505,
       lng: -0.09,
     },
-    zoom: 13,
+    haveUsersLocation: false,
+    zoom: 2,
   }
   componentDidMount() {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -28,11 +29,29 @@ class App extends Component {
         location: {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        }
+        },
+        haveUsersLocation: true,
+        zoom: 2
       })
-      console.log(position)
+    }, () => {
+      console.log('uh oh .... they didnt give access !') // Verify function working when declining location request
+      fetch('http://ip-api.com/json/')
+        .then(res => res.json())
+        .then(location => {
+          console.log(location.lon);
+          console.log(location.lat);
+          this.setState({
+            location: {
+              lat: location.lat,
+              lng: location.lon,
+            },
+            haveUsersLocation: true,
+            zooom: 2
+          })
+        })
     });
   }
+
 
   render() {
     const position = [this.state.location.lat, this.state.location.lng]
@@ -43,15 +62,17 @@ class App extends Component {
           attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
           url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
         />
-        <Marker
-          className="icon"
-          position={position}
-          icon={Icon}
-        >
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
+        {this.state.haveUsersLocation ?
+          <Marker
+            className="icon"
+            position={position}
+            icon={Icon}
+          >
+            <Popup>
+              A pretty CSS3 popup. <br /> Easily customizable.
             </Popup>
-        </Marker>
+          </Marker> : ''
+        }
         <ChangeMapView coords={position} />
 
       </MapContainer>
