@@ -22,8 +22,9 @@ router.get('/', (req, res) => {
     });
 });
 
-router.post('/',  (req, res, next) => {
-  const result =  schema.validateAsync(req.body)
+router.post('/', (req, res, next) => {
+  const result = schema.validate(req.body)
+  res.send(result)
   if (result.error === null) {
     const { name, message, latitude, longitude } = req.body;
     const userMessage = {
