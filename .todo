@@ -15,7 +15,7 @@
        ✔ With the browser @done(21-04-06 05:12)
        ✔ With their IP using an API @done(21-04-07 04:21)
     ✔ Show a pin at the users location @done(21-04-07 04:21)
-    ☐ Show a form to submit a message 
+    ✔ Show a form to submit a message @done(21-04-08 02:19)
     * when form is submitted - POST /message
     ✔ Setup server with create-express-api : https://www.npmjs.com/package/create-express-api @done(21-04-06 16:05)
     

@@ -11,8 +11,8 @@ const CardComponent = (props) => {
     const formSubmitted = (event) => {
         event.preventDefault()
         const User = {
-            'name': name,
-            'message': message,
+            name,
+            message,
         }
         props.parentCallBack(User)
         // console.log(User)

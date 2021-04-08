@@ -1,109 +1,188 @@
-import React, { Component } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Icon } from './component/icon'
-import Card from './component/card'
+import React, { Component } from 'react';
+import L from 'leaflet';
+import { MapContainer, useMap, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Card, CardText, Button } from 'reactstrap';
+
+import userLocationURL from './user_location.svg';
+import messageLocationURL from './message_location.svg';
+
+import MessageCardForm from './MessageCardForm';
+import { getMessages, getLocation, sendMessage } from './API';
+
+import './App.css';
 
 
 function ChangeMapView({ coords }) {
-  const map = useMap();
-  map.setView(coords, map.getZoom());
+    const map = useMap();
+    map.setView(coords, map.getZoom());
 
-  return null;
+    return null;
 }
 
+const myIcon = L.icon({
+    iconUrl: userLocationURL,
+    iconSize: [50, 82]
+});
+
+const messageIcon = L.icon({
+    iconUrl: messageLocationURL,
+    iconSize: [50, 82]
+});
+
 class App extends Component {
-  constructor(props) {
-
-    super(props);
-    this.state = {
-      userMessage: {
-        name: '',
-        message: '',
-      },
-      location: {
-        lat: '',
-        lng: ''
-      },
-      haveUsersLocation: false,
-      zoom: 2,
-    }
-  }
-  handleCallBack = (childData) => {
-    const name = childData.name
-    const message = childData.message
-    this.setState((prevState) => ({
-      userMessage: {
-        ...prevState.userMessage,
-        name,
-        message,
-      }
-
-    }))
-
-    // Loggings
-    console.log(this.state.userMessage)
-
-  }
-  componentDidMount() {
-    navigator.geolocation.getCurrentPosition((position) => {
-      /*  do_something(position.coords.latitude, position.coords.longitude) */
-      this.setState({
+    state = {
         location: {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
+            lat: 51.505,
+            lng: -0.09,
         },
-        haveUsersLocation: true,
-        zoom: 2
-      })
-    }, () => {
-      console.log('uh oh .... they didnt give access !') // Verify function working when declining location request
-      fetch('http://ip-api.com/json/')
-        .then(res => res.json())
-        .then(location => {
-          console.log(location.lon);
-          console.log(location.lat);
-          this.setState({
-            location: {
-              lat: location.lat,
-              lng: location.lon,
-            },
-            haveUsersLocation: true,
-            zooom: 2
-          })
-        })
-    });
-  }
+        haveUsersLocation: false,
+        zoom: 2,
+        userMessage: {
+            name: '',
+            message: ''
+        },
+        showMessageForm: false,
+        sendingMessage: false,
+        sentMessage: false,
+        messages: []
+    }
 
-  render() {
-    const position = [this.state.location.lat, this.state.location.lng]
-    const zoom = this.state.zoom
-    return (
-      <>
-        <MapContainer center={position} zoom={zoom} style={{ height: '350px' }}>
-          <TileLayer
-            attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-          />
-          {this.state.haveUsersLocation ?
-            <Marker
-              className="icon"
-              position={position}
-              icon={Icon}
-            >
-              <Popup>
-                A pretty CSS3 popup. <br /> Easily customizable.
-            </Popup>
-            </Marker> : ''
-          }
-          <ChangeMapView coords={position} />
+    componentDidMount() {
+        getMessages()
+            .then(messages => {
+                this.setState({
+                    messages
+                });
+            });
+    }
 
-        </MapContainer>
-        <Card props={this.state.haveUsersLocation} parentCallBack={this.handleCallBack} />
+    showMessageForm = () => {
+        this.setState({
+            showMessageForm: true
+        });
+        getLocation()
+            .then(location => {
+                this.setState({
+                    location,
+                    haveUsersLocation: true,
+                    zoom: 13
+                });
+            });
+    }
 
-      </>
-    )
-  }
+    cancelMessage = () => {
+        this.setState({
+            showMessageForm: false
+        });
+    }
+
+    formIsValid = () => {
+        let { name, message } = this.state.userMessage;
+        name = name.trim();
+        message = message.trim();
+
+        const validMessage =
+            name.length > 0 && name.length <= 500 &&
+            message.length > 0 && message.length <= 500;
+
+        return validMessage && this.state.haveUsersLocation ? true : false;
+    }
+
+    formSubmitted = (event) => {
+        event.preventDefault();
+
+        if (this.formIsValid()) {
+            this.setState({
+                sendingMessage: true
+            });
+
+            const message = {
+                name: this.state.userMessage.name,
+                message: this.state.userMessage.message,
+                latitude: this.state.location.lat,
+                longitude: this.state.location.lng,
+            };
+
+            sendMessage(message)
+                .then((result) => {
+                    setTimeout(() => {
+                        this.setState({
+                            sendingMessage: false,
+                            sentMessage: true
+                        });
+                    }, 4000);
+                });
+        }
+    }
+
+    valueChanged = (event) => {
+        const { name, value } = event.target;
+        this.setState((prevState) => ({
+            userMessage: {
+                ...prevState.userMessage,
+                [name]: value
+            }
+        }))
+    }
+
+    render() {
+        const position = [this.state.location.lat, this.state.location.lng];
+        return (
+            <div className="map">
+                <MapContainer
+                    className="map"
+                    worldCopyJump={true}
+                    center={position}
+                    zoom={this.state.zoom}>
+                    <TileLayer
+                        attribution="&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors and Chat location by Iconika from the Noun Project"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {
+                        this.state.haveUsersLocation ?
+                            <Marker
+                                position={position}
+                                icon={myIcon}>
+                            </Marker> : ''
+                    }
+                    {this.state.messages.map(message => (
+                        <Marker
+                            key={message._id}
+                            position={[message.latitude, message.longitude]}
+                            icon={messageIcon}>
+                            <Popup>
+                                <p><em>{message.name}:</em> {message.message}</p>
+                                {message.otherMessages ? message.otherMessages.map(message => <p key={message._id}><em>{message.name}:</em> {message.message}</p>) : ''}
+                            </Popup>
+                        </Marker>
+                    ))}
+                    <ChangeMapView coords={position} />
+
+                </MapContainer>
+                {
+                    !this.state.showMessageForm ?
+                        <Button className="message-form" onClick={this.showMessageForm} color="info">Add a Message</Button> :
+                        !this.state.sentMessage ?
+                            <MessageCardForm
+                                cancelMessage={this.cancelMessage}
+                                showMessageForm={this.state.showMessageForm}
+                                sendingMessage={this.state.sendingMessage}
+                                sentMessage={this.state.sentMessage}
+                                haveUsersLocation={this.state.haveUsersLocation}
+                                formSubmitted={this.formSubmitted}
+                                valueChanged={this.valueChanged}
+                                formIsValid={this.formIsValid}
+                            /> :
+                            <Card body className="thanks-form">
+                                <CardText>Thanks for submitting a message!</CardText>
+                            </Card>
+                }
+                <Card className="footer">
+                    <CardText> Made with <span role="img" aria-label="love">💚</span> by <a href="https://git.io/w3cj" target="_blank" rel="noopener noreferrer">w3cj</a></CardText>
+                </Card>
+            </div>
+        );
+    }
 }
 
 export default App;
