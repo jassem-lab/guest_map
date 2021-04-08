@@ -14,7 +14,7 @@ function ChangeMapView({ coords }) {
 
 class App extends Component {
   constructor(props) {
-    
+
     super(props);
     this.state = {
       userMessage: {
@@ -30,21 +30,20 @@ class App extends Component {
     }
   }
   handleCallBack = (childData) => {
-    const fname = childData.name
-    const fmessage = childData.message
-    this.setState({
+    const name = childData.name
+    const message = childData.message
+    this.setState((prevState) => ({
       userMessage: {
-        name: fname,
-        message: fmessage
+        ...prevState.userMessage,
+        name,
+        message,
       }
-      
-    })
 
+    }))
 
-    console.log(fname)
-    console.log(fmessage)
-
+    // Loggings
     console.log(this.state.userMessage)
+
   }
   componentDidMount() {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -100,8 +99,8 @@ class App extends Component {
           <ChangeMapView coords={position} />
 
         </MapContainer>
-        <Card props={this.state.haveUsersLocation} parentCallBack={(e)=>this.handleCallBack} />
-         
+        <Card props={this.state.haveUsersLocation} parentCallBack={this.handleCallBack} />
+
       </>
     )
   }
